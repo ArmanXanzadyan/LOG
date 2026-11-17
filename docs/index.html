@@ -49,19 +49,19 @@ svg{width:100%;height:auto;display:block}
 <svg viewBox="0 0 880 210" role="img" aria-label="Pipeline diagram">
 <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="#888"/></marker></defs>
 <rect class="svg-box" x="5" y="30" width="130" height="64" rx="8"/><text class="svg-t" x="70" y="58" text-anchor="middle">log ֆայլ</text><text class="svg-s" x="70" y="78" text-anchor="middle">std::istream</text>
-<rect class="svg-acc" x="180" y="30" width="140" height="64" rx="8"/><text class="svg-t" x="250" y="58" text-anchor="middle">Parser</text><text class="svg-s" x="250" y="78" text-anchor="middle">Strategy · Factory</text>
-<rect class="svg-acc" x="365" y="30" width="140" height="64" rx="8"/><text class="svg-t" x="435" y="58" text-anchor="middle">Filter</text><text class="svg-s" x="435" y="78" text-anchor="middle">Composite · Decorator</text>
-<rect class="svg-acc" x="550" y="30" width="140" height="64" rx="8"/><text class="svg-t" x="620" y="58" text-anchor="middle">Observers</text><text class="svg-s" x="620" y="78" text-anchor="middle">Observer</text>
-<rect class="svg-acc" x="735" y="30" width="140" height="64" rx="8"/><text class="svg-t" x="805" y="58" text-anchor="middle">Reporter</text><text class="svg-s" x="805" y="78" text-anchor="middle">Template Method</text>
+<rect class="svg-acc" x="180" y="30" width="140" height="64" rx="8"/><text class="svg-t" x="250" y="58" text-anchor="middle">Parser</text><text class="svg-s" x="250" y="78" text-anchor="middle">տողը → LogEntry</text>
+<rect class="svg-acc" x="365" y="30" width="140" height="64" rx="8"/><text class="svg-t" x="435" y="58" text-anchor="middle">Filter</text><text class="svg-s" x="435" y="78" text-anchor="middle">պահել / դեն նետել</text>
+<rect class="svg-acc" x="550" y="30" width="140" height="64" rx="8"/><text class="svg-t" x="620" y="58" text-anchor="middle">Հաշվիչներ</text><text class="svg-s" x="620" y="78" text-anchor="middle">վիճակագրություն</text>
+<rect class="svg-acc" x="735" y="30" width="140" height="64" rx="8"/><text class="svg-t" x="805" y="58" text-anchor="middle">Reporter</text><text class="svg-s" x="805" y="78" text-anchor="middle">text / csv / html</text>
 <path class="svg-a" d="M135,62H178"/><path class="svg-a" d="M320,62H363"/><path class="svg-a" d="M505,62H548"/><path class="svg-a" d="M690,62H733"/>
 <path class="svg-a" d="M250,94V150H215"/><text class="svg-s" x="120" y="154">չհամընկավ → բաց թողնել</text>
 <path class="svg-a" d="M435,94V180H400"/><text class="svg-s" x="270" y="184">ֆիլտրը մերժեց → բաց թողնել</text>
-<rect x="175" y="2" width="525" height="110" rx="10" fill="none" stroke="var(--accent)" stroke-dasharray="5 4"/><text class="svg-s" x="690" y="14" text-anchor="end">Analyzer (Facade)</text>
+<rect x="175" y="2" width="525" height="110" rx="10" fill="none" stroke="var(--accent)" stroke-dasharray="5 4"/><text class="svg-s" x="690" y="14" text-anchor="end">Analyzer</text>
 </svg>
 <ol>
 <li><b>Parser</b>-ը regex-ով բաժանում է տողը ժամանակի, մակարդակի և հաղորդագրության։ Եթե տողը ձևաչափին չի համապատասխանում, այն բաց է թողնվում։</li>
 <li><b>Filter</b>-ը որոշում է՝ տողը պահե՞լ, թե՝ ոչ։ Բոլոր ֆիլտրերը միավորված են մեկ <code>AndFilter</code>-ում։</li>
-<li><b>Observer</b>-ները ստանում են ամեն ընդունված տողը և հաշվում վիճակագրություն՝ ըստ մակարդակի, ըստ ժամի և ամենահաճախ հանդիպող հաղորդագրությունները։</li>
+<li><b>Հաշվիչները</b> ստանում են ամեն ընդունված տողը և հաշվում վիճակագրություն՝ ըստ մակարդակի, ըստ ժամի և ամենահաճախ հանդիպող հաղորդագրությունները։</li>
 <li><b>Reporter</b>-ը գրում է հաշվետվությունը ընտրված ձևաչափով։</li>
 </ol>
 
@@ -76,25 +76,53 @@ svg{width:100%;height:auto;display:block}
 <div class="card" id="demo"></div>
 <p class="sub" id="demo-sum"></p>
 
-<h2>Կիրառված design pattern-ներ</h2>
-<div class="grid">
-<div class="card"><span class="tag">Վարքային</span><h3>Strategy</h3><p><code>ILineParser</code>, <code>IFilter</code>. Ալգորիթմը փոխվում է առանց <code>Analyzer</code>-ին դիպչելու։ Նոր log ձևաչափ ավելացնելու համար բավական է նոր regex։</p><p class="sub">src/Parser.h, src/Filter.h</p></div>
-<div class="card"><span class="tag">Ստեղծող</span><h3>Factory</h3><p><code>ParserFactory::create("bracket")</code>, <code>ReporterFactory::create("html")</code>. Օբյեկտը ստեղծվում է անունով, և <code>main</code>-ը չգիտի կոնկրետ դասերը։</p><p class="sub">src/Parser.cpp, src/Reporter.cpp</p></div>
-<div class="card"><span class="tag">Կառուցվածքային</span><h3>Composite</h3><p><code>AndFilter</code>-ը պարունակում է մի քանի ֆիլտր, բայց ինքն էլ <code>IFilter</code> է։ Analyzer-ը միշտ աշխատում է մեկ ֆիլտրի հետ։</p><p class="sub">src/Filter.h</p></div>
-<div class="card"><span class="tag">Կառուցվածքային</span><h3>Decorator</h3><p><code>NotFilter</code>-ը «փաթաթում» է մեկ այլ ֆիլտր և շրջում նրա պատասխանը։ Այդպես է աշխատում <code>--exclude</code>-ը։</p><p class="sub">src/Filter.h</p></div>
-<div class="card"><span class="tag">Վարքային</span><h3>Observer</h3><p><code>LevelCounter</code>, <code>HourlyCounter</code>, <code>TopMessages</code>-ը բաժանորդագրվում են <code>Analyzer::subscribe()</code>-ով։ Նոր վիճակագրություն ավելացնելու համար Analyzer-ը փոխել պետք չէ։</p><p class="sub">src/Stats.h</p></div>
-<div class="card"><span class="tag">Վարքային</span><h3>Template Method</h3><p><code>Reporter::write()</code>-ը ֆիքսում է կարգը՝ header → entries → summary → footer։ Ենթադասերը լրացնում են միայն իրենց մասերը։</p><p class="sub">src/Reporter.h</p></div>
-<div class="card"><span class="tag">Կառուցվածքային</span><h3>Facade</h3><p><code>Analyzer</code>-ը պարզ <code>run(stream)</code> ինտերֆեյսի հետևում թաքցնում է կարդալը, parse-ը, ֆիլտրը և դիտորդներին ծանուցելը։</p><p class="sub">src/Analyzer.h</p></div>
-</div>
+<h2>Աշխատացնելու օրինակներ</h2>
+<p>Բոլոր օրինակները աշխատեցվում են նախագծի թղթապանակից՝ build-ից հետո։</p>
+<table>
+<tr><th>Ինչ ենք ուզում</th><th>Հրաման</th></tr>
+<tr><td>Ամբողջ ֆայլը և վիճակագրությունը</td><td><code>log_analyzer.exe samples\sample.log</code></td></tr>
+<tr><td>Միայն սխալները</td><td><code>log_analyzer.exe samples\sample.log --level ERROR</code></td></tr>
+<tr><td>Սխալներ և զգուշացումներ</td><td><code>log_analyzer.exe samples\sample.log --level ERROR,WARN</code></td></tr>
+<tr><td>Բառով որոնում</td><td><code>log_analyzer.exe samples\sample.log --grep connection</code></td></tr>
+<tr><td>Regex-ով որոնում</td><td><code>log_analyzer.exe samples\sample.log --grep "slow query: [0-9]{4}"</code></td></tr>
+<tr><td>Հանել անհետաքրքիր տողերը</td><td><code>log_analyzer.exe samples\sample.log --exclude "heartbeat|logged in"</code></td></tr>
+<tr><td>Ժամանակի միջակայք</td><td><code>log_analyzer.exe samples\sample.log --from "2026-11-17 10:00:00" --to "2026-11-17 11:00:00"</code></td></tr>
+<tr><td>Համակցված ֆիլտր</td><td><code>log_analyzer.exe samples\sample.log --level ERROR --grep connection --from "2026-11-17 10:30:00"</code></td></tr>
+<tr><td>CSV ֆայլ (Excel-ի համար)</td><td><code>log_analyzer.exe samples\sample.log --level ERROR --report csv --out errors.csv</code></td></tr>
+<tr><td>HTML հաշվետվություն</td><td><code>log_analyzer.exe samples\sample.log --report html --out report.html</code></td></tr>
+<tr><td>Այլ ձևաչափի log (<code>[ժամ] LEVEL: msg</code>)</td><td><code>log_analyzer.exe other.log --format bracket</code></td></tr>
+<tr><td>Օգնություն</td><td><code>log_analyzer.exe --help</code></td></tr>
+</table>
 
-<h3>Դասերի կապերը</h3>
-<pre><code>ILineParser  &lt;|-- RegexLineParser        ParserFactory   --creates--&gt; ILineParser
-IFilter      &lt;|-- LevelFilter, RegexFilter, TimeRangeFilter
-             &lt;|-- AndFilter  o-- IFilter*   (Composite)
-             &lt;|-- NotFilter  o-- IFilter    (Decorator)
-IEntryObserver &lt;|-- LevelCounter, HourlyCounter, TopMessages
-Reporter     &lt;|-- TextReporter, CsvReporter, HtmlReporter   ReporterFactory --creates--&gt; Reporter
-Analyzer     o-- ILineParser, IFilter, IEntryObserver*</code></pre>
+<h3>Օրինակ՝ միայն սխալներ</h3>
+<pre><code>&gt; log_analyzer.exe samples\sample.log --level ERROR
+6: 2026-11-17 10:00:01 ERROR Connection 17 lost
+8: 2026-11-17 10:00:05 ERROR Connection 17 lost
+12: 2026-11-17 11:01:10 ERROR Connection 23 lost
+14: 2026-11-17 11:30:15 ERROR Failed to write file /data/out_7.csv
+
+=== Summary ===
+Lines: 15, parsed: 14, matched: 4
+By level:
+  ERROR: 4
+By hour:
+  10:00  ## 2
+  11:00  ## 2
+Top messages:
+  3 x Connection # lost
+  1 x Failed to write file /data/out_#.csv</code></pre>
+
+<h3>Օրինակ՝ CSV</h3>
+<pre><code>&gt; log_analyzer.exe samples\sample.log --grep "slow query" --report csv
+line,timestamp,level,message
+4,2026-11-17 09:15:03,WARNING,"Slow query: 1530 ms"
+13,2026-11-17 11:05:00,WARNING,"Slow query: 2210 ms"</code></pre>
+
+<h3>Սխալ մուտքագրում</h3>
+<pre><code>&gt; log_analyzer.exe missing.log
+Error: Cannot open missing.log
+&gt; log_analyzer.exe samples\sample.log --report pdf
+Error: Unknown report type: pdf</code></pre>
 
 <h2>Ֆայլերի կառուցվածք</h2>
 <table>
@@ -102,7 +130,7 @@ Analyzer     o-- ILineParser, IFilter, IEntryObserver*</code></pre>
 <tr><td><code>src/LogEntry.h</code></td><td>Մեկ log տողի տվյալներ</td></tr>
 <tr><td><code>src/Parser.*</code></td><td>Տողի parse, ձևաչափերի factory</td></tr>
 <tr><td><code>src/Filter.h</code></td><td>Ֆիլտրեր</td></tr>
-<tr><td><code>src/Stats.*</code></td><td>Վիճակագրություն (observers)</td></tr>
+<tr><td><code>src/Stats.*</code></td><td>Վիճակագրություն</td></tr>
 <tr><td><code>src/Analyzer.*</code></td><td>Pipeline-ը միացնող դաս</td></tr>
 <tr><td><code>src/Reporter.*</code></td><td>Text / CSV / HTML հաշվետվություն</td></tr>
 <tr><td><code>src/main.cpp</code></td><td>Հրամանի տողի արգումենտներ</td></tr>
