@@ -1,0 +1,15 @@
+2026-11-17 08:59:58.001 INFO Server starting on port 8080
+2026-11-17 09:00:00.120 INFO Loaded config from /etc/app.conf
+2026-11-17 09:05:12.400 DEBUG Cache warmup took 412 ms
+2026-11-17 09:15:03.010 WARN Slow query: 1530 ms
+2026-11-17 09:42:44.777 INFO User 1001 logged in
+2026-11-17 10:00:01.250 ERROR Connection 17 lost
+2026-11-17 10:00:02.300 INFO Reconnecting...
+2026-11-17 10:00:05.010 ERROR Connection 17 lost
+2026-11-17 10:12:30.000 WARN Disk usage 81%
+2026-11-17 10:40:00.500 INFO User 1002 logged in
+this line has no timestamp and will be skipped
+2026-11-17 11:01:10.900 ERROR Connection 23 lost
+2026-11-17 11:05:00.000 WARN Slow query: 2210 ms
+2026-11-17 11:30:15.321 ERROR Failed to write file /data/out_7.csv
+2026-11-17 12:00:00.000 INFO Heartbeat

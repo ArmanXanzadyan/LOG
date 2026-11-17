@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="hy">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Log Analyzer</title>
+<style>
+:root{--bg:#fbfaf7;--fg:#1d1d1f;--muted:#5f6368;--card:#fff;--line:#e2e0da;--accent:#2457c5;--accent-soft:#e8eefb;--err:#b3261e;--warn:#9a5b00;--code:#f3f1ec}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15161a;--fg:#e8e8ea;--muted:#a0a3a8;--card:#1e2026;--line:#33363d;--accent:#7aa2ff;--accent-soft:#232c45;--err:#ff8a80;--warn:#ffb74d;--code:#25272e}}
+:root[data-theme="dark"]{--bg:#15161a;--fg:#e8e8ea;--muted:#a0a3a8;--card:#1e2026;--line:#33363d;--accent:#7aa2ff;--accent-soft:#232c45;--err:#ff8a80;--warn:#ffb74d;--code:#25272e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:920px;margin:0 auto;padding:40px 16px 80px}
+h1{font-size:2rem;margin:0 0 4px}h2{margin-top:48px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.sub{color:var(--muted);margin:0 0 24px}
+code,pre{font-family:ui-monospace,Consolas,monospace;font-size:.9em}
+code{background:var(--code);padding:1px 5px;border-radius:4px}
+pre{background:var(--code);padding:14px;border-radius:8px;overflow-x:auto;line-height:1.45}
+pre code{background:none;padding:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
+.card h3{margin:0 0 6px;font-size:1.05rem}
+.tag{display:inline-block;font-size:.75rem;background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px;margin-bottom:6px}
+.card p{margin:6px 0}
+table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+svg{width:100%;height:auto;display:block}
+.svg-box{fill:var(--card);stroke:var(--line);stroke-width:1.5}
+.svg-acc{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.5}
+.svg-t{fill:var(--fg);font:14px system-ui,sans-serif}
+.svg-s{fill:var(--muted);font:11px system-ui,sans-serif}
+.svg-a{stroke:var(--muted);stroke-width:1.5;fill:none;marker-end:url(#arr)}
+.err{color:var(--err)}.warn{color:var(--warn)}
+.steps{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.steps button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--fg);padding:6px 12px;border-radius:6px;cursor:pointer}
+.steps button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.demo-line{font-family:ui-monospace,Consolas,monospace;font-size:.85em;padding:2px 6px;border-radius:4px;white-space:pre-wrap;word-break:break-word}
+.demo-line.out{opacity:.3;text-decoration:line-through}
+</style>
+</head>
+<body>
+<main>
+<h1>Log Analyzer</h1>
+<p class="sub">Կուրսային աշխատանք «Ծրագրավորման տեխնոլոգիաներ» · թեմա №28 · C++17</p>
+
+<p>Ծրագիրը կարդում է log ֆայլը տող առ տող։ Յուրաքանչյուր տողից առանձնացնում է ժամանակը, մակարդակը (ERROR / WARNING / INFO / DEBUG) և հաղորդագրությունը։ Հետո ֆիլտրում է տողերը, հաշվում վիճակագրություն և պատրաստում հաշվետվություն <b>text</b>, <b>CSV</b> կամ <b>HTML</b> տեսքով։</p>
+
+<h2>Ինչպես է աշխատում</h2>
+<p>Ամեն տող անցնում է նույն հերթականությամբ (pipeline)․</p>
+<svg viewBox="0 0 880 210" role="img" aria-label="Pipeline diagram">
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="#888"/></marker></defs>
+<rect class="svg-box" x="5" y="30" width="130" height="64" rx="8"/><text class="svg-t" x="70" y="58" text-anchor="middle">log ֆայլ</text><text class="svg-s" x="70" y="78" text-anchor="middle">std::istream</text>
+<rect class="svg-acc" x="180" y="30" width="140" height="64" rx="8"/><text class="svg-t" x="250" y="58" text-anchor="middle">Parser</text><text class="svg-s" x="250" y="78" text-anchor="middle">Strategy · Factory</text>
+<rect class="svg-acc" x="365" y="30" width="140" height="64" rx="8"/><text class="svg-t" x="435" y="58" text-anchor="middle">Filter</text><text class="svg-s" x="435" y="78" text-anchor="middle">Composite · Decorator</text>
+<rect class="svg-acc" x="550" y="30" width="140" height="64" rx="8"/><text class="svg-t" x="620" y="58" text-anchor="middle">Observers</text><text class="svg-s" x="620" y="78" text-anchor="middle">Observer</text>
+<rect class="svg-acc" x="735" y="30" width="140" height="64" rx="8"/><text class="svg-t" x="805" y="58" text-anchor="middle">Reporter</text><text class="svg-s" x="805" y="78" text-anchor="middle">Template Method</text>
+<path class="svg-a" d="M135,62H178"/><path class="svg-a" d="M320,62H363"/><path class="svg-a" d="M505,62H548"/><path class="svg-a" d="M690,62H733"/>
+<path class="svg-a" d="M250,94V150H215"/><text class="svg-s" x="120" y="154">չհամընկավ → բաց թողնել</text>
+<path class="svg-a" d="M435,94V180H400"/><text class="svg-s" x="270" y="184">ֆիլտրը մերժեց → բաց թողնել</text>
+<rect x="175" y="2" width="525" height="110" rx="10" fill="none" stroke="var(--accent)" stroke-dasharray="5 4"/><text class="svg-s" x="690" y="14" text-anchor="end">Analyzer (Facade)</text>
+</svg>
+<ol>
+<li><b>Parser</b>-ը regex-ով բաժանում է տողը ժամանակի, մակարդակի և հաղորդագրության։ Եթե տողը ձևաչափին չի համապատասխանում, այն բաց է թողնվում։</li>
+<li><b>Filter</b>-ը որոշում է՝ տողը պահե՞լ, թե՝ ոչ։ Բոլոր ֆիլտրերը միավորված են մեկ <code>AndFilter</code>-ում։</li>
+<li><b>Observer</b>-ները ստանում են ամեն ընդունված տողը և հաշվում վիճակագրություն՝ ըստ մակարդակի, ըստ ժամի և ամենահաճախ հանդիպող հաղորդագրությունները։</li>
+<li><b>Reporter</b>-ը գրում է հաշվետվությունը ընտրված ձևաչափով։</li>
+</ol>
+
+<h3>Փորձիր</h3>
+<p>Ընտրիր ֆիլտր և տես, թե <code>samples/sample.log</code>-ից որ տողերն են մնում.</p>
+<div class="steps" id="btns">
+<button data-f="all" class="on">առանց ֆիլտրի</button>
+<button data-f="err">--level ERROR</button>
+<button data-f="grep">--grep connection</button>
+<button data-f="time">--from 10:00 --to 11:00</button>
+</div>
+<div class="card" id="demo"></div>
+<p class="sub" id="demo-sum"></p>
+
+<h2>Կիրառված design pattern-ներ</h2>
+<div class="grid">
+<div class="card"><span class="tag">Վարքային</span><h3>Strategy</h3><p><code>ILineParser</code>, <code>IFilter</code>. Ալգորիթմը փոխվում է առանց <code>Analyzer</code>-ին դիպչելու։ Նոր log ձևաչափ ավելացնելու համար բավական է նոր regex։</p><p class="sub">src/Parser.h, src/Filter.h</p></div>
+<div class="card"><span class="tag">Ստեղծող</span><h3>Factory</h3><p><code>ParserFactory::create("bracket")</code>, <code>ReporterFactory::create("html")</code>. Օբյեկտը ստեղծվում է անունով, և <code>main</code>-ը չգիտի կոնկրետ դասերը։</p><p class="sub">src/Parser.cpp, src/Reporter.cpp</p></div>
+<div class="card"><span class="tag">Կառուցվածքային</span><h3>Composite</h3><p><code>AndFilter</code>-ը պարունակում է մի քանի ֆիլտր, բայց ինքն էլ <code>IFilter</code> է։ Analyzer-ը միշտ աշխատում է մեկ ֆիլտրի հետ։</p><p class="sub">src/Filter.h</p></div>
+<div class="card"><span class="tag">Կառուցվածքային</span><h3>Decorator</h3><p><code>NotFilter</code>-ը «փաթաթում» է մեկ այլ ֆիլտր և շրջում նրա պատասխանը։ Այդպես է աշխատում <code>--exclude</code>-ը։</p><p class="sub">src/Filter.h</p></div>
+<div class="card"><span class="tag">Վարքային</span><h3>Observer</h3><p><code>LevelCounter</code>, <code>HourlyCounter</code>, <code>TopMessages</code>-ը բաժանորդագրվում են <code>Analyzer::subscribe()</code>-ով։ Նոր վիճակագրություն ավելացնելու համար Analyzer-ը փոխել պետք չէ։</p><p class="sub">src/Stats.h</p></div>
+<div class="card"><span class="tag">Վարքային</span><h3>Template Method</h3><p><code>Reporter::write()</code>-ը ֆիքսում է կարգը՝ header → entries → summary → footer։ Ենթադասերը լրացնում են միայն իրենց մասերը։</p><p class="sub">src/Reporter.h</p></div>
+<div class="card"><span class="tag">Կառուցվածքային</span><h3>Facade</h3><p><code>Analyzer</code>-ը պարզ <code>run(stream)</code> ինտերֆեյսի հետևում թաքցնում է կարդալը, parse-ը, ֆիլտրը և դիտորդներին ծանուցելը։</p><p class="sub">src/Analyzer.h</p></div>
+</div>
+
+<h3>Դասերի կապերը</h3>
+<pre><code>ILineParser  &lt;|-- RegexLineParser        ParserFactory   --creates--&gt; ILineParser
+IFilter      &lt;|-- LevelFilter, RegexFilter, TimeRangeFilter
+             &lt;|-- AndFilter  o-- IFilter*   (Composite)
+             &lt;|-- NotFilter  o-- IFilter    (Decorator)
+IEntryObserver &lt;|-- LevelCounter, HourlyCounter, TopMessages
+Reporter     &lt;|-- TextReporter, CsvReporter, HtmlReporter   ReporterFactory --creates--&gt; Reporter
+Analyzer     o-- ILineParser, IFilter, IEntryObserver*</code></pre>
+
+<h2>Ֆայլերի կառուցվածք</h2>
+<table>
+<tr><th>Ֆայլ</th><th>Ինչ է անում</th></tr>
+<tr><td><code>src/LogEntry.h</code></td><td>Մեկ log տողի տվյալներ</td></tr>
+<tr><td><code>src/Parser.*</code></td><td>Տողի parse, ձևաչափերի factory</td></tr>
+<tr><td><code>src/Filter.h</code></td><td>Ֆիլտրեր</td></tr>
+<tr><td><code>src/Stats.*</code></td><td>Վիճակագրություն (observers)</td></tr>
+<tr><td><code>src/Analyzer.*</code></td><td>Pipeline-ը միացնող դաս</td></tr>
+<tr><td><code>src/Reporter.*</code></td><td>Text / CSV / HTML հաշվետվություն</td></tr>
+<tr><td><code>src/main.cpp</code></td><td>Հրամանի տողի արգումենտներ</td></tr>
+<tr><td><code>tests/tests.cpp</code></td><td>Unit test-եր</td></tr>
+</table>
+
+<h2>Build և աշխատեցում</h2>
+<pre><code>cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+cmake --build build --config Release
+build\Release\log_tests.exe
+build\Release\log_analyzer.exe samples\sample.log --level ERROR,WARN --from "2026-11-17 10:00:00"</code></pre>
+<p>Արդյունքը.</p>
+<pre><code>6: 2026-11-17 10:00:01 ERROR Connection 17 lost
+8: 2026-11-17 10:00:05 ERROR Connection 17 lost
+9: 2026-11-17 10:12:30 WARNING Disk usage 81%
+12: 2026-11-17 11:01:10 ERROR Connection 23 lost
+13: 2026-11-17 11:05:00 WARNING Slow query: 2210 ms
+14: 2026-11-17 11:30:15 ERROR Failed to write file /data/out_7.csv
+
+=== Summary ===
+Lines: 15, parsed: 14, matched: 6
+By level:
+  ERROR: 4
+  WARNING: 2
+By hour:
+  10:00  ### 3
+  11:00  ### 3
+Top messages:
+  3 x Connection # lost
+  ...</code></pre>
+</main>
+<script>
+const LOG=[
+"2026-11-17 08:59:58.001 INFO Server starting on port 8080",
+"2026-11-17 09:00:00.120 INFO Loaded config from /etc/app.conf",
+"2026-11-17 09:05:12.400 DEBUG Cache warmup took 412 ms",
+"2026-11-17 09:15:03.010 WARN Slow query: 1530 ms",
+"2026-11-17 09:42:44.777 INFO User 1001 logged in",
+"2026-11-17 10:00:01.250 ERROR Connection 17 lost",
+"2026-11-17 10:00:02.300 INFO Reconnecting...",
+"2026-11-17 10:00:05.010 ERROR Connection 17 lost",
+"2026-11-17 10:12:30.000 WARN Disk usage 81%",
+"2026-11-17 10:40:00.500 INFO User 1002 logged in",
+"this line has no timestamp and will be skipped",
+"2026-11-17 11:01:10.900 ERROR Connection 23 lost",
+"2026-11-17 11:05:00.000 WARN Slow query: 2210 ms",
+"2026-11-17 11:30:15.321 ERROR Failed to write file /data/out_7.csv",
+"2026-11-17 12:00:00.000 INFO Heartbeat"];
+const RE=/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})(?:\.\d+)?\s+(ERROR|WARN|INFO|DEBUG)\s+(.*)$/;
+const F={all:()=>true,err:e=>e.level==="ERROR",grep:e=>/connection/i.test(e.msg),time:e=>e.ts>="2026-11-17 10:00:00"&&e.ts<="2026-11-17 11:00:00"};
+function render(key){
+  const box=document.getElementById("demo");box.textContent="";let n=0;
+  LOG.forEach(l=>{const m=l.match(RE);const d=document.createElement("div");d.className="demo-line";d.textContent=l;
+    if(!m){d.classList.add("out");d.title="Parser: not matched";}
+    else{const e={ts:m[1],level:m[2],msg:m[3]};if(e.level==="ERROR")d.classList.add("err");if(e.level==="WARN")d.classList.add("warn");
+      if(F[key](e))n++;else d.classList.add("out");}
+    box.appendChild(d);});
+  document.getElementById("demo-sum").textContent="Lines: 15, parsed: 14, matched: "+n;
+}
+document.getElementById("btns").addEventListener("click",ev=>{const b=ev.target.closest("button");if(!b)return;
+  document.querySelectorAll("#btns button").forEach(x=>x.classList.toggle("on",x===b));render(b.dataset.f);});
+render("all");
+</script>
+</body>
+</html>
